@@ -15,9 +15,14 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  var msgController = TextEditingController();
+  final wordList = words.words;
+  final keyboardList = [
+    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+    ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Backspace']
+  ];
+  double sizeFactor = 0.6;
 
-  static const wordList = words.words;
   var answer = '';
   bool isGameWin = false;
   var goContents = [
@@ -29,7 +34,8 @@ class _MyAppState extends State<MyApp> {
     ['', '', '', '', ''],
   ];
   int floor = 0;
-  String inputText = '';
+  int myIndex = 0;
+  var keyMap = <String, String>{};
 
   reset() {
     answer = '';
@@ -43,182 +49,214 @@ class _MyAppState extends State<MyApp> {
       ['', '', '', '', ''],
     ];
     floor = 0;
-    inputText = '';
+    myIndex = 0;
+    keyMap = <String, String>{};
+  }
+
+  renderGo() {
+    goComponent(idx, val) {
+      var keyState = keyMap.containsKey(val) ? keyMap[val] : "";
+      return Container(
+        height: 60*sizeFactor,
+        width: 60*sizeFactor,
+        padding: EdgeInsets.all(5*sizeFactor),
+        margin: EdgeInsets.all(5*sizeFactor),
+        decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.black,
+              width: 2*sizeFactor,
+            ),
+            borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+            color: (() {
+              if (idx < floor) {
+                switch (keyState) {
+                  case 'Ans':
+                    return Colors.green;
+                  case 'AWP':
+                    return Colors.amber;
+                  case 'NIA':
+                    return Colors.grey[600];
+                }
+              } else {
+                return Colors.white;
+              }
+            }())),
+        child: Text(
+          val,
+          style: TextStyle(fontSize: 40*sizeFactor),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    return goContents
+        .asMap()
+        .entries
+        .map((entry) {
+            int idx = entry.key;
+            var x = entry.value;
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: x.asMap().entries.map((entry) {
+                  var val = entry.value;
+                  return Container(child: goComponent(idx, val));
+                }).toList(),
+              );
+            })
+        .toList();
   }
 
   renderKeyboard() {
-    return goContents
+    keyComponent(val) {
+      var keyState = keyMap.containsKey(val) ? keyMap[val] : "";
+      return SizedBox(
+        child: InkWell(
+          child: Container(
+            height: 60*sizeFactor,
+            padding: EdgeInsets.all(15*sizeFactor),
+            margin: EdgeInsets.all(5*sizeFactor),
+            decoration: BoxDecoration(
+                borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+                color: (() {
+                  switch (keyState) {
+                    case 'Ans':
+                    //Answer
+                      return Colors.green;
+                    case 'AWP':
+                    //At Wrong Place
+                      return Colors.amber;
+                    case 'NIA':
+                    //Not In Answer
+                      return Colors.grey[600];
+                    case '':
+                      return Colors.grey[400];
+                  }
+                }())),
+            child: Center(
+                child: (val == "Backspace")
+                    ? Icon(
+                  Icons.backspace_outlined,
+                  size: 15*sizeFactor,
+                )
+                    : Text(
+                  val,
+                  style: TextStyle(fontSize: 20*sizeFactor),
+                  textAlign: TextAlign.center,
+                )),
+          ),
+          onTap: () {
+            switch (val) {
+              case 'ENTER':
+                if (goContents[floor][4]=='') {
+                  //NoEnoughLetters
+                } else {
+                  setState(() {
+                    for (int i = 0; i < 5; i++) {
+                      if (answer[i] == goContents[floor][i]) {
+                        keyMap[goContents[floor][i]] = 'Ans';
+                      } else if (answer
+                          .split('')
+                          .contains(goContents[floor][i])) {
+                        keyMap[goContents[floor][i]] = 'AWP';
+                      } else {
+                        keyMap[goContents[floor][i]] = 'NIA';
+                      }
+                    }
+                    floor++;
+                    myIndex = 0;
+                  });
+                }
+                break;
+              case 'Backspace':
+                setState(() {
+                  goContents[floor][myIndex - 1] = '';
+                  myIndex = max(0, myIndex - 1);
+                });
+                break;
+              default:
+                setState(() {
+                  goContents[floor][myIndex] = val;
+                  myIndex = min(4, myIndex + 1);
+                });
+                break;
+            }
+          },
+        ),
+      );
+    }
+
+    return keyboardList
         .map(
           (x) => Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: x.asMap().entries.map((entry) {
-              int idx = entry.key;
-              String val = entry.value;
-              return Container(child: goComponent(idx, val));
+            children: x.map((val) {
+              return Container(child: keyComponent(val));
             }).toList(),
           ),
         )
         .toList();
   }
 
-  goComponent(idx, val) {
-    return Container(
-      height: 60,
-      width: 60,
-      padding: const EdgeInsets.all(5),
-      margin: const EdgeInsets.all(5),
-      decoration: BoxDecoration(
-          border: Border.all(
-            color: Colors.black,
-            width: 2,
-          ),
-          borderRadius: const BorderRadius.all(Radius.circular(5.0)),
-          color: (() {
-            if (val == answer[idx]) {
-              return Colors.green;
-            } else if (answer.split('').contains(val)) {
-              return Colors.amber;
-            } else {
-              if (val == "") {
-                return Colors.white;
-              } else {
-                return Colors.grey;
-              }
-            }
-          }())),
-      child: Text(
-        val,
-        style: const TextStyle(fontSize: 40),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-
-  Future<AlertDialog> alert() async {
-    return AlertDialog(
-      title: const Text('Error'),
-      content: const SingleChildScrollView(
-        child: Text(
-          'Error message',
-        ),
-      ),
-      actions: <Widget>[
-        TextButton(
-          child: const Text('Ok'),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    var isWordFive = (inputText.length != 5);
     var isGameOver = (isGameWin | (floor > 5));
     if (answer == "") {
       var rnd = Random().nextInt(wordList.length);
       setState(() {
-        answer = wordList[rnd];
+        answer = wordList[rnd].toUpperCase();
       });
     }
 
     return MaterialApp(
         home: Scaffold(
       body: Center(
-        child: SizedBox(
-          width: 400,
-          child: ListView(
-            children: [
-              Container(
-                margin: const EdgeInsets.all(10),
-                padding: const EdgeInsets.all(10),
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Container(
+              margin: EdgeInsets.all(10*sizeFactor),
+              padding: EdgeInsets.all(10*sizeFactor),
+              child: Column(
+                children: [
+                  if (isGameOver)
+                    Column(
+                      children: [
+                        Text(isGameWin ? "Correct!!" : "Game Over",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 40*sizeFactor,
+                            )),
+                        Text('The answer was $answer'),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              reset();
+                            });
+                          },
+                          child: const Text("RETRY"),
+                        ),
+                      ],
+                    )
+                ],
+              ),
+            ),
+            SizedBox(
+              child: Center(
                 child: Column(
-                  children: <Widget>[
-                    if (isGameOver)
-                      Column(
-                        children: [
-                          Text(isGameWin ? "Correct!!" : "Game Over",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 41,
-                              )),
-                          Text('The answer was $answer'),
-                          ElevatedButton(
-                              onPressed: () {
-                                msgController.clear();
-                                setState(() {
-                                  reset();
-                                });
-                              },
-                              child: const Text("retry"),
-                          ),],
-                      )
-                  ],
+                  children: renderGo(),
                 ),
               ),
-              Container(
-                margin: const EdgeInsets.all(10),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.black,
-                    width: 5,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Column(
-                    children: renderKeyboard(),
-                  ),
+            ),
+            Container(
+              margin: EdgeInsets.all(10*sizeFactor),
+              padding: EdgeInsets.all(10*sizeFactor),
+              child: Center(
+                child: Column(
+                  children: renderKeyboard(),
                 ),
               ),
-              SizedBox(
-                height: 100,
-                width: 400,
-                child: Center(
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: Center(
-                          child: TextField(
-                            controller: msgController,
-                            onChanged: (text) {
-                              setState(() {
-                                inputText = text;
-                              });
-                            },
-                            decoration: const InputDecoration(
-                              // labelText: '텍스트 입력',
-                              hintText: 'Geuss the answer',
-                              border: OutlineInputBorder(), //외곽선
-                            ),
-                          ),
-                        ),
-                      ),
-                      Center(
-                        child: OutlinedButton(
-                          onPressed: (isWordFive | isGameOver)
-                              ? null
-                              : () {
-                                  msgController.clear();
-                                  List<String> listedWord = inputText.split('');
-                                  setState(() {
-                                    goContents[floor] = listedWord;
-                                    floor++;
-                                    if (answer == inputText) {
-                                      isGameWin = true;
-                                    }
-                                  });
-                                },
-                          child: const Text("Submit"),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       appBar: AppBar(title: const Text('Fwordle'), centerTitle: true),
