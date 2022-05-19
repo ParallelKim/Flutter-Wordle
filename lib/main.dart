@@ -26,12 +26,48 @@ class _MyAppState extends State<MyApp> {
   var answer = '';
   bool isGameWin = false;
   var goContents = [
-    ['', '', '', '', ''],
-    ['', '', '', '', ''],
-    ['', '', '', '', ''],
-    ['', '', '', '', ''],
-    ['', '', '', '', ''],
-    ['', '', '', '', ''],
+    [
+      ['', ''],
+      ['', ''],
+      ['', ''],
+      ['', ''],
+      ['', '']
+    ],
+    [
+      ['', ''],
+      ['', ''],
+      ['', ''],
+      ['', ''],
+      ['', '']
+    ],
+    [
+      ['', ''],
+      ['', ''],
+      ['', ''],
+      ['', ''],
+      ['', '']
+    ],
+    [
+      ['', ''],
+      ['', ''],
+      ['', ''],
+      ['', ''],
+      ['', '']
+    ],
+    [
+      ['', ''],
+      ['', ''],
+      ['', ''],
+      ['', ''],
+      ['', '']
+    ],
+    [
+      ['', ''],
+      ['', ''],
+      ['', ''],
+      ['', ''],
+      ['', '']
+    ],
   ];
   int floor = 0;
   int myIndex = 0;
@@ -41,12 +77,48 @@ class _MyAppState extends State<MyApp> {
     answer = '';
     isGameWin = false;
     goContents = [
-      ['', '', '', '', ''],
-      ['', '', '', '', ''],
-      ['', '', '', '', ''],
-      ['', '', '', '', ''],
-      ['', '', '', '', ''],
-      ['', '', '', '', ''],
+      [
+        ['', ''],
+        ['', ''],
+        ['', ''],
+        ['', ''],
+        ['', '']
+      ],
+      [
+        ['', ''],
+        ['', ''],
+        ['', ''],
+        ['', ''],
+        ['', '']
+      ],
+      [
+        ['', ''],
+        ['', ''],
+        ['', ''],
+        ['', ''],
+        ['', '']
+      ],
+      [
+        ['', ''],
+        ['', ''],
+        ['', ''],
+        ['', ''],
+        ['', '']
+      ],
+      [
+        ['', ''],
+        ['', ''],
+        ['', ''],
+        ['', ''],
+        ['', '']
+      ],
+      [
+        ['', ''],
+        ['', ''],
+        ['', ''],
+        ['', ''],
+        ['', '']
+      ],
     ];
     floor = 0;
     myIndex = 0;
@@ -55,21 +127,20 @@ class _MyAppState extends State<MyApp> {
 
   renderGo() {
     goComponent(idx, val) {
-      var keyState = keyMap.containsKey(val) ? keyMap[val] : "";
       return Container(
-        height: 60*sizeFactor,
-        width: 60*sizeFactor,
-        padding: EdgeInsets.all(5*sizeFactor),
-        margin: EdgeInsets.all(5*sizeFactor),
+        height: 60 * sizeFactor,
+        width: 60 * sizeFactor,
+        padding: EdgeInsets.all(5 * sizeFactor),
+        margin: EdgeInsets.all(5 * sizeFactor),
         decoration: BoxDecoration(
             border: Border.all(
               color: Colors.black,
-              width: 2*sizeFactor,
+              width: 2 * sizeFactor,
             ),
             borderRadius: const BorderRadius.all(Radius.circular(5.0)),
             color: (() {
               if (idx < floor) {
-                switch (keyState) {
+                switch (val[1]) {
                   case 'Ans':
                     return Colors.green;
                   case 'AWP':
@@ -82,28 +153,24 @@ class _MyAppState extends State<MyApp> {
               }
             }())),
         child: Text(
-          val,
-          style: TextStyle(fontSize: 40*sizeFactor),
+          val[0],
+          style: TextStyle(fontSize: 40 * sizeFactor),
           textAlign: TextAlign.center,
         ),
       );
     }
 
-    return goContents
-        .asMap()
-        .entries
-        .map((entry) {
-            int idx = entry.key;
-            var x = entry.value;
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: x.asMap().entries.map((entry) {
-                  var val = entry.value;
-                  return Container(child: goComponent(idx, val));
-                }).toList(),
-              );
-            })
-        .toList();
+    return goContents.asMap().entries.map((entry) {
+      int idx = entry.key;
+      var x = entry.value;
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: x.asMap().entries.map((entry) {
+          var val = entry.value;
+          return Container(child: goComponent(idx, val));
+        }).toList(),
+      );
+    }).toList();
   }
 
   renderKeyboard() {
@@ -112,21 +179,21 @@ class _MyAppState extends State<MyApp> {
       return SizedBox(
         child: InkWell(
           child: Container(
-            height: 60*sizeFactor,
-            padding: EdgeInsets.all(15*sizeFactor),
-            margin: EdgeInsets.all(5*sizeFactor),
+            height: 60 * sizeFactor,
+            padding: EdgeInsets.all(15 * sizeFactor),
+            margin: EdgeInsets.all(5 * sizeFactor),
             decoration: BoxDecoration(
                 borderRadius: const BorderRadius.all(Radius.circular(5.0)),
                 color: (() {
                   switch (keyState) {
                     case 'Ans':
-                    //Answer
+                      //Answer
                       return Colors.green;
                     case 'AWP':
-                    //At Wrong Place
+                      //At Wrong Place
                       return Colors.amber;
                     case 'NIA':
-                    //Not In Answer
+                      //Not In Answer
                       return Colors.grey[600];
                     case '':
                       return Colors.grey[400];
@@ -135,31 +202,44 @@ class _MyAppState extends State<MyApp> {
             child: Center(
                 child: (val == "Backspace")
                     ? Icon(
-                  Icons.backspace_outlined,
-                  size: 15*sizeFactor,
-                )
+                        Icons.backspace_outlined,
+                        size: 15 * sizeFactor,
+                      )
                     : Text(
-                  val,
-                  style: TextStyle(fontSize: 20*sizeFactor),
-                  textAlign: TextAlign.center,
-                )),
+                        val,
+                        style: TextStyle(fontSize: 20 * sizeFactor),
+                        textAlign: TextAlign.center,
+                      )),
           ),
           onTap: () {
             switch (val) {
               case 'ENTER':
-                if (goContents[floor][4]=='') {
+                var guess = '';
+                for (var elem in goContents[floor]) {
+                  guess += elem[0];
+                }
+
+                if (guess == answer) {
+                  setState(() {
+                    isGameWin = true;
+                  });
+                }
+
+                if (goContents[floor][4][0] == '') {
                   //NoEnoughLetters
                 } else {
                   setState(() {
                     for (int i = 0; i < 5; i++) {
-                      if (answer[i] == goContents[floor][i]) {
-                        keyMap[goContents[floor][i]] = 'Ans';
-                      } else if (answer
-                          .split('')
-                          .contains(goContents[floor][i])) {
-                        keyMap[goContents[floor][i]] = 'AWP';
+                      var val = goContents[floor][i];
+                      if (answer[i] == val[0]) {
+                        keyMap[val[0]] = 'Ans';
+                        val[1] = 'Ans';
+                      } else if (answer.split('').contains(val[0])) {
+                        if (!keyMap.containsKey(val[0])) keyMap[val[0]] = 'AWP';
+                        val[1] = 'AWP';
                       } else {
-                        keyMap[goContents[floor][i]] = 'NIA';
+                        keyMap[val[0]] = 'NIA';
+                        val[1] = 'NIA';
                       }
                     }
                     floor++;
@@ -169,14 +249,14 @@ class _MyAppState extends State<MyApp> {
                 break;
               case 'Backspace':
                 setState(() {
-                  goContents[floor][myIndex - 1] = '';
+                  goContents[floor][myIndex - 1][0] = '';
                   myIndex = max(0, myIndex - 1);
                 });
                 break;
               default:
                 setState(() {
-                  goContents[floor][myIndex] = val;
-                  myIndex = min(4, myIndex + 1);
+                  goContents[floor][min(4, myIndex)][0] = val;
+                  myIndex = min(5, myIndex + 1);
                 });
                 break;
             }
@@ -214,8 +294,8 @@ class _MyAppState extends State<MyApp> {
           shrinkWrap: true,
           children: [
             Container(
-              margin: EdgeInsets.all(10*sizeFactor),
-              padding: EdgeInsets.all(10*sizeFactor),
+              margin: EdgeInsets.all(10 * sizeFactor),
+              padding: EdgeInsets.all(10 * sizeFactor),
               child: Column(
                 children: [
                   if (isGameOver)
@@ -224,7 +304,7 @@ class _MyAppState extends State<MyApp> {
                         Text(isGameWin ? "Correct!!" : "Game Over",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 40*sizeFactor,
+                              fontSize: 40 * sizeFactor,
                             )),
                         Text('The answer was $answer'),
                         ElevatedButton(
@@ -248,8 +328,8 @@ class _MyAppState extends State<MyApp> {
               ),
             ),
             Container(
-              margin: EdgeInsets.all(10*sizeFactor),
-              padding: EdgeInsets.all(10*sizeFactor),
+              margin: EdgeInsets.all(10 * sizeFactor),
+              padding: EdgeInsets.all(10 * sizeFactor),
               child: Center(
                 child: Column(
                   children: renderKeyboard(),
